@@ -24,6 +24,16 @@ export const webhookHandler = async (request: Request, response: Response) => {
         order.paymentDetails = charge;
         await order.save();
       }
+    }else if (event.type === "charge.failed") {
+      const charge = event.data.object as stripe.Charge;
+      const order = await Order.findOne({
+        paymentIntentId: charge.payment_intent,
+      });
+      if (order) {
+        order.paymentStatus = "failed";
+        order.paymentDetails = charge;
+        await order.save();
+      }
     } 
     response.send({ received: true });
   } catch (error) {
